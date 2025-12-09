@@ -386,8 +386,3 @@ For issues, questions, or suggestions:
 - Real-time communication with [Socket.IO](https://socket.io/)
 
 ---
-
-<div align="center">
-  <p><strong>Made with ❤️ by Nitesh Singh</strong></p>
-  <p>⭐ If you find this project useful, please consider giving it a star!</p>
-</div>
