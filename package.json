@@ -2,11 +2,18 @@
   "name": "api-beam",
   "version": "1.4.0",
   "description": "Convert your chatgpt account to an api.",
-  "license": "MIT",
+  "homepage": "https://github.com/NiteshSingh17/apibeam#readme",
+  "bugs": {
+    "url": "https://github.com/NiteshSingh17/apibeam/issues"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/NiteshSingh17/apibeam"
+    "url": "git+https://github.com/NiteshSingh17/apibeam.git"
   },
+  "license": "MIT",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
   "scripts": {
     "build": "vite build --config vite.config.chrome.ts",
     "build:chrome": "vite build --config vite.config.chrome.ts",
@@ -15,7 +22,6 @@
     "dev:chrome": "nodemon --config nodemon.chrome.json",
     "dev:firefox": "nodemon --config nodemon.firefox.json"
   },
-  "type": "module",
   "dependencies": {
     "clsx": "^2.1.1",
     "lucide-react": "^0.555.0",
@@ -32,10 +38,10 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@types/webextension-polyfill": "^0.12.3",
-    "@typescript-eslint/eslint-plugin": "^7.8.0",
-    "@typescript-eslint/parser": "^7.18.0",
+  "@typescript-eslint/eslint-plugin": "^7.8.0",
+  "@typescript-eslint/parser": "^7.18.0",
     "@vitejs/plugin-react": "^4.7.0",
-    "eslint": "^9.32.0",
+  "eslint": "^8.56.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
