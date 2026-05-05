@@ -7,6 +7,9 @@
 
 ---
 
+https://github.com/user-attachments/assets/6543dbb2-d9ef-4d06-84cf-578e2283d074
+
+
 ## 🚀 Overview
 
 ApiBeam is a powerful browser extension that transforms your ChatGPT account into a programmatic API. Instead of manually interacting with ChatGPT through the web interface, ApiBeam allows you to:
