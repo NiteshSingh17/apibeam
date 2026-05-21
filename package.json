@@ -13,7 +13,6 @@
   "license": "MIT",
   "author": "",
   "type": "module",
-  "main": "index.js",
   "scripts": {
     "build": "vite build --config vite.config.chrome.ts",
     "build:chrome": "vite build --config vite.config.chrome.ts",
