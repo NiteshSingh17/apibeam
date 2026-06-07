@@ -3,7 +3,10 @@ import type { Socket } from "socket.io-client";
 
 // Default API base URL; can be overridden via chrome.storage "apiBaseUrl"
 export const DEFAULT_API_BASE_URL = "https://apibeam.bitsmall.in/";
-const chatgptBaseUrl = "https://chat.openai.com/chat";
+const chatgptBaseUrl = "https://chatgpt.com";
+const claudeBaseUrl = "https://claude.ai/new";
+
+export type Provider = 'chatgpt' | 'claude';
 
 export type SettingsSchema = {
   language: string;
@@ -56,6 +59,19 @@ const getApiBaseUrl = async (): Promise<string> => {
   });
 };
 
+const getProvider = async (): Promise<Provider> => {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(["provider"], (result) => {
+      resolve((result.provider as Provider) || "chatgpt");
+    });
+  });
+};
+
+const getProviderUrl = async (): Promise<string> => {
+  const provider = await getProvider();
+  return provider === "claude" ? claudeBaseUrl : chatgptBaseUrl;
+};
+
 const getConnectUrl = async () => {
   const roomId = await getRoomId();
   const base = await getApiBaseUrl();
@@ -67,14 +83,28 @@ getRoomId();
 let tabId: undefined | number;
 let socket: Socket | undefined;
 
+const broadcastConnectionStatus = () => {
+  chrome.tabs.query({}, (tabs) => {
+    tabs.forEach((tab) => {
+      if (tab.id) {
+        chrome.tabs.sendMessage(
+          tab.id,
+          {
+            type: "get_connection_status",
+            content: socketConnectionStatus,
+          },
+          () => chrome.runtime.lastError // Ignore errors for tabs that don't listen
+        );
+      }
+    });
+  });
+};
+
 async function connectWS() {
   try {
     socketConnectionStatus.errorMessage = "";
     socketConnectionStatus.status = "pending";
-    chrome.runtime.sendMessage({
-      type: "get_connection_status",
-      content: socketConnectionStatus,
-    });
+    broadcastConnectionStatus();
     socket = io(await getApiBaseUrl(), {
       transports: ["websocket"], // IMPORTANT for stability
       reconnection: true,
@@ -85,10 +115,7 @@ async function connectWS() {
       const roomId = await getRoomId();
       socketConnectionStatus.status = "connected";
       socketConnectionStatus.errorMessage = "";
-      chrome.runtime.sendMessage({
-        type: "get_connection_status",
-        content: socketConnectionStatus,
-      });
+      broadcastConnectionStatus();
       const base = await getApiBaseUrl();
       await fetch(`${base}connect/${roomId}?socketId=${socket?.id}`);
     });
@@ -102,34 +129,72 @@ async function connectWS() {
     socket.on("connect_failed", (err) => handleErrorOnConnect(err));
 
     socket.on("serverMessage", async (msg) => {
-      console.log("serverMessage ", msg);
-      const sendMessageToTab = (id: number) => {
-        console.log("sendMessageToTab ", id);
-        chrome.tabs.sendMessage(id, {
-          type: "ask_question",
-          content: msg,
-        });
-      };
-      const tabDetails = tabId
-        ? await chrome.tabs.get(tabId).catch(console.log)
-        : null;
-      if (!tabDetails || !tabId) {
-        chrome.tabs.create(
-          {
-            url: chatgptBaseUrl,
-            active: true,
-          },
-          (tab) => {
-            tabId = tab.id;
-            setTimeout(() => {
-              if (tabId) {
-                sendMessageToTab(tabId);
+      console.log("serverMessage", msg);
+      const providerUrl = await getProviderUrl();
+      
+      // Helper to send message with retry logic
+      const sendMessageToTabWithRetry = async (id: number, retries = 3, delay = 2000) => {
+        try {
+          const tab = await chrome.tabs.get(id);
+          console.log("[BG] Tab found:", tab.url);
+          if (tab) {
+            console.log("[BG] Sending ask_question message to tab", id, "with content:", msg);
+            chrome.tabs.sendMessage(id, {
+              type: "ask_question",
+              content: msg,
+            }, (response) => {
+              if (chrome.runtime.lastError) {
+                console.log("[BG] Error sending message:", chrome.runtime.lastError);
+                // Retry if content script not ready
+                if (retries > 0 && chrome.runtime.lastError.message?.includes('Receiving end does not exist')) {
+                  console.log(`[BG] Retrying in ${delay}ms... (${retries} retries left)`);
+                  setTimeout(() => {
+                    sendMessageToTabWithRetry(id, retries - 1, delay);
+                  }, delay);
+                }
+              } else {
+                console.log("[BG] Message sent successfully");
               }
-            }, 3000);
+            });
+          }
+        } catch (err) {
+          console.log("[BG] Tab not found, creating new one. Error:", err);
+          chrome.tabs.create(
+            { url: providerUrl, active: true },
+            (newTab) => {
+              if (newTab.id) {
+                tabId = newTab.id;
+                console.log("[BG] New tab created with id:", newTab.id);
+                // Wait longer for new tab content script to load
+                setTimeout(() => {
+                  if(newTab.id)
+                  sendMessageToTabWithRetry(newTab.id, 3, 2000);
+                }, 5000);
+              }
+            }
+          );
+        }
+      };
+
+      // Try to send to existing tab
+      if (tabId) {
+        sendMessageToTabWithRetry(tabId);
+      } else {
+        // No tab exists, create one
+        chrome.tabs.create(
+          { url: providerUrl, active: true },
+          (tab) => {
+            if (tab.id) {
+              tabId = tab.id;
+              console.log("[BG] New tab created with id:", tab.id);
+              // Wait longer for new tab content script to load
+              setTimeout(() => {
+                if(tab.id)
+                sendMessageToTabWithRetry(tab.id, 3, 2000);
+              }, 5000);
+            }
           }
         );
-      } else {
-        sendMessageToTab(tabId);
       }
     });
   } catch (e: any) {
@@ -139,24 +204,19 @@ async function connectWS() {
 }
 
 const disconnectWS = () => {
+  console.log("disconnectWS")
   socket?.disconnect();
   socket = undefined;
   socketConnectionStatus.status = "disconnected";
   socketConnectionStatus.errorMessage = undefined;
-  chrome.runtime.sendMessage({
-    type: "get_connection_status",
-    content: socketConnectionStatus,
-  });
+  broadcastConnectionStatus();
 };
 
 const handleErrorOnConnect = (err: any) => {
   console.log("handleErrorOnConnect ", err);
   socketConnectionStatus.status = "disconnected";
   socketConnectionStatus.errorMessage = err.message;
-  chrome.runtime.sendMessage({
-    type: "get_connection_status",
-    content: socketConnectionStatus,
-  });
+  broadcastConnectionStatus();
 };
 
 type AgentMessage = {
@@ -167,7 +227,6 @@ type AgentMessage = {
 chrome.runtime.onMessage.addListener(
   async (msg: AgentMessage, _sender, sendResponse) => {
     const tabId = _sender.tab?.id;
-    console.log("msgmsgmsg ", msg);
     if (msg.type === "question_answer") {
       const roomId = await getRoomId();
       socket?.emit("clientResponse", { roomId, message: msg.content });
@@ -207,12 +266,31 @@ chrome.runtime.onMessage.addListener(
           });
         }
       });
+    } else if (msg.type === "set_provider") {
+      const provider = msg.content as Provider;
+      chrome.storage.local.set({ provider }, () => {
+        console.log("Provider set to", provider);
+        if (tabId) {
+          chrome.tabs.sendMessage(tabId, {
+            type: "set_provider",
+            content: provider,
+          });
+        }
+      });
+    } else if (msg.type === "get_provider") {
+      if (tabId) {
+        const provider = await getProvider();
+        chrome.tabs.sendMessage(tabId, {
+          type: "set_provider",
+          content: provider,
+        });
+      }
     } else if (msg.type === "connect") {
       connectWS();
     } else if (msg.type === "disconnect") {
       disconnectWS();
     } else if (msg.type === "get_connection_status") {
-      chrome.runtime.sendMessage({
+      sendResponse({
         type: "get_connection_status",
         content: socketConnectionStatus,
       });

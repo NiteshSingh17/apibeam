@@ -1,8 +1,8 @@
 <div align="center">
   <img src="public/icon-128.png" alt="ApiBeam Logo" width="128" height="128" />
   <h1>ApiBeam</h1>
-  <p><strong>Convert your ChatGPT account into an API</strong></p>
-  <p>A Chrome/Firefox extension that bridges your ChatGPT account to your applications through a simple REST API</p>
+  <p><strong>Convert your ChatGPT or Claude account into an API</strong></p>
+  <p>A Chrome/Firefox extension that bridges your ChatGPT or Claude account to your applications through a simple REST API</p>
 </div>
 
 ---
@@ -12,14 +12,15 @@ https://github.com/user-attachments/assets/6543dbb2-d9ef-4d06-84cf-578e2283d074
 
 ## 🚀 Overview
 
-ApiBeam is a powerful browser extension that transforms your ChatGPT account into a programmatic API. Instead of manually interacting with ChatGPT through the web interface, ApiBeam allows you to:
+ApiBeam is a powerful browser extension that transforms your ChatGPT or Claude account into a programmatic API. Instead of manually interacting with ChatGPT/Claude through the web interface, ApiBeam allows you to:
 
-- Send API requests from your applications to your ChatGPT account
+- Send API requests from your applications to your ChatGPT or Claude account
 - Receive structured responses in JSON format
 - Configure language-specific prompts for consistent API-like responses
+- Switch between ChatGPT and Claude providers with a single click
 - Maintain full control of your data (everything runs locally on your machine)
 
-**Perfect for**: Developers who want to use ChatGPT as a backend service without OpenAI API costs or API keys.
+**Perfect for**: Developers who want to use ChatGPT or Claude as a backend service without API costs or API keys.
 
 ---
 
@@ -41,7 +42,7 @@ ApiBeam is a powerful browser extension that transforms your ChatGPT account int
 - Node.js >= 18.17.1
 - npm or yarn
 - Chrome or Firefox browser
-- Active ChatGPT account
+- Active ChatGPT account and/or Claude account
 
 ---
 

@@ -15,9 +15,13 @@
       ],
       "matches": []
     },
-            {
+    {
       "resources": ["loader.js"],
       "matches": ["https://*.chatgpt.com/*", "https://chat.openai.com/*"]
+    },
+    {
+      "resources": ["loader-claude.js"],
+      "matches": ["https://claude.ai/*"]
     }
   ]
 }

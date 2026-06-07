@@ -43,6 +43,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         loader: resolve(__dirname, "src/pages/content/loader.ts"),
+        "loader-claude": resolve(__dirname, "src/pages/content/components/claude/loader.ts"),
         settingsHtml: resolve(__dirname, "src/pages/settings/index.html"),
       },
       output: {

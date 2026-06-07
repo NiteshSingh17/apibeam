@@ -12,20 +12,37 @@ export const ConnectButton = ({ popup }: { popup?: boolean }) => {
   const [serverName, setServerName] = useState("");
 
   useEffect(() => {
-    chrome.runtime.sendMessage({ type: "get_connect_url" });
-  }, []);
-
-  useEffect(() => {
-    chrome.runtime.sendMessage({ type: "get_connection_status" });
-    chrome.runtime.onMessage.addListener((msg) => {
+    const handleMessage = (msg: any) => {
       if (msg.type === "get_connection_status" && msg.content) {
         setStatus(msg.content.status);
         setErrorMessage(msg.content.errorMessage);
       } else if (msg.type === "set_connect_url") {
         setServerName(new URL(msg.content).hostname);
       }
-    });
+    };
+
+    chrome.runtime.onMessage.addListener(handleMessage);
+
+    chrome.runtime.sendMessage(
+      { type: "get_connection_status" },
+      (response) => {
+        console.log("[Settings] Response received:", response);
+        if (response && response.type === "get_connection_status") {
+          setStatus(response.content.status);
+          setErrorMessage(response.content.errorMessage);
+        }
+      }
+    );
+
+    // Send other requests
+    chrome.runtime.sendMessage({ type: "get_connect_url" });
+
+    // Cleanup: remove listener on unmount
+    return () => {
+      chrome.runtime.onMessage.removeListener(handleMessage);
+    };
   }, []);
+
 
   useEffect(() => {
     // Get network information if available
