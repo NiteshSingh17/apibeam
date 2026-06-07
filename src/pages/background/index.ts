@@ -2,7 +2,7 @@ import { io } from "socket.io-client";
 import type { Socket } from "socket.io-client";
 
 // Default API base URL; can be overridden via chrome.storage "apiBaseUrl"
-const DEFAULT_API_BASE_URL = "https://apibeam.bitsmall.in/";
+export const DEFAULT_API_BASE_URL = "https://apibeam.bitsmall.in/";
 const chatgptBaseUrl = "https://chat.openai.com/chat";
 
 export type SettingsSchema = {
