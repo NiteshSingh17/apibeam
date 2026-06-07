@@ -67,6 +67,8 @@
                       }
                     }
                   }
+                }else if(typeof obj.v === "string"){
+                  fullAssistantMessage += obj.v;
                 }
               } else if (eventName === "delta_encoding") {
                 // encoding event, you may ignore or store token if needed

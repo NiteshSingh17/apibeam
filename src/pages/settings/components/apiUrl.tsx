@@ -2,28 +2,30 @@ import React, { useEffect, useState } from 'react';
 import { Copy, Check, ExternalLink, Info, ExternalLinkIcon } from 'lucide-react';
 
 export const ApiUrlSection = () => {
-  const [copied, setCopied] = useState(false);
   const [apiUrl, setApiUrl] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const testApiUrl = apiUrl + '/test-me?message=how to use apis';
 
   useEffect(() => {
+    // Request initial URL
     chrome.runtime.sendMessage({ type: 'get_connect_url' });
-    chrome.runtime.onMessage.addListener(
-      (msg) => {
-        if (msg.type === "set_connect_url") {
-          setApiUrl(msg.content);
-        } 
+    // Listen for URL updates — reflects immediately when custom URL is saved
+    const listener = (msg: any) => {
+      if (msg.type === 'set_connect_url' || msg.type === 'set_api_base_url') {
+        setApiUrl(msg.content);
       }
-    );
-  },[])
-
+    };
+    chrome.runtime.onMessage.addListener(listener);
+    return () => chrome.runtime.onMessage.removeListener(listener);
+  }, []);
+  
   const handleCopy = () => {
     navigator.clipboard.writeText(apiUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
+  
   return (
     <div>
       <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">

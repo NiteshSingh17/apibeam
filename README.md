@@ -218,8 +218,30 @@ Settings are stored locally using Chrome's storage API:
 - **Language preference**
 - **Method configuration**
 - **Room ID** (unique identifier for your connection)
+- **Custom API Base URL** (if self-hosting)
 
 ---
+
+## 🖥️ Self-Hosting the Backend
+
+By default ApiBeam uses the hosted server at `apibeam.bitsmall.in`. If you want full control, you can run your own backend:
+
+1. Clone and start the server:
+
+```bash
+git clone https://github.com/NiteshSingh17/apibeam-api-server.git
+cd apibeam-api-server
+yarn setup-and-start
+```
+
+2. Open the **ApiBeam extension → Settings**.
+3. Under **Custom API Base URL**, click **Edit** and paste your server URL (e.g. `http://localhost:3000`), then click **Save**.
+
+That's it — the extension will now route all requests through your own server.
+
+> 📖 See the [apibeam-api-server README](https://github.com/NiteshSingh17/apibeam-api-server) for full server documentation.
+
+
 
 ## 🔒 Security & Privacy
 

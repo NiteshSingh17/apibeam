@@ -1,7 +1,8 @@
 import { io } from "socket.io-client";
 import type { Socket } from "socket.io-client";
 
-const API_BASE_URL = "https://apibeam.bitsmall.in/";
+// Default API base URL; can be overridden via chrome.storage "apiBaseUrl"
+const DEFAULT_API_BASE_URL = "https://apibeam.bitsmall.in/";
 const chatgptBaseUrl = "https://chat.openai.com/chat";
 
 export type SettingsSchema = {
@@ -46,9 +47,19 @@ const getRoomId = () => {
   });
 };
 
+const getApiBaseUrl = async (): Promise<string> => {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(["apiBaseUrl"], (result) => {
+      const stored = result.apiBaseUrl as string;
+      resolve(stored ? stored : DEFAULT_API_BASE_URL);
+    });
+  });
+};
+
 const getConnectUrl = async () => {
   const roomId = await getRoomId();
-  return `${API_BASE_URL}app/${roomId}`;
+  const base = await getApiBaseUrl();
+  return `${base}app/${roomId}`;
 };
 
 getRoomId();
@@ -56,7 +67,7 @@ getRoomId();
 let tabId: undefined | number;
 let socket: Socket | undefined;
 
-function connectWS() {
+async function connectWS() {
   try {
     socketConnectionStatus.errorMessage = "";
     socketConnectionStatus.status = "pending";
@@ -64,7 +75,7 @@ function connectWS() {
       type: "get_connection_status",
       content: socketConnectionStatus,
     });
-    socket = io(API_BASE_URL, {
+    socket = io(await getApiBaseUrl(), {
       transports: ["websocket"], // IMPORTANT for stability
       reconnection: true,
       reconnectionAttempts: 3,
@@ -78,7 +89,8 @@ function connectWS() {
         type: "get_connection_status",
         content: socketConnectionStatus,
       });
-      await fetch(`${API_BASE_URL}connect/${roomId}?socketId=${socket?.id}`);
+      const base = await getApiBaseUrl();
+      await fetch(`${base}connect/${roomId}?socketId=${socket?.id}`);
     });
 
     socket.on("disconnect", () => {
@@ -170,15 +182,31 @@ chrome.runtime.onMessage.addListener(
           });
         });
       }
-    } else if (msg.type === "get_connect_url") {
+    } else if (msg.type === "get_connect_url" || msg.type === "get_api_base_url") {
       if (tabId) {
-        getConnectUrl().then(function (url) {
-          chrome.tabs.sendMessage(tabId, {
-            type: "set_connect_url",
-            content: url,
-          });
+        const base = await getApiBaseUrl();
+        const payload = msg.type === "get_connect_url" ? await getConnectUrl() : base;
+        const responseType = msg.type === "get_connect_url" ? "set_connect_url" : "set_api_base_url";
+        chrome.tabs.sendMessage(tabId, {
+          type: responseType,
+          content: payload,
         });
       }
+    } else if (msg.type === "set_api_base_url") {
+      // Store new API base URL
+      const newUrl = msg.content as string;
+      chrome.storage.local.set({ apiBaseUrl: newUrl }, async () => {
+        console.log("API base URL updated to", newUrl);
+        // Broadcast updated connect URL back to the settings tab so the UI updates instantly
+        if (tabId) {
+          disconnectWS();
+          const updatedConnectUrl = await getConnectUrl();
+          chrome.tabs.sendMessage(tabId, {
+            type: "set_connect_url",
+            content: updatedConnectUrl,
+          });
+        }
+      });
     } else if (msg.type === "connect") {
       connectWS();
     } else if (msg.type === "disconnect") {

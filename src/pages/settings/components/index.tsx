@@ -1,14 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Server,
-  Code,
-  Settings,
-  Info,
-  ArrowRightLeft,
-  Chrome,
-  GitBranch,
-  Github,
-} from "lucide-react";
+import { Server, Code, Settings, Info, ArrowRightLeft, Chrome, GitBranch, Github, Edit } from "lucide-react";
 import { ApiUrlSection } from "./apiUrl";
 import { ConnectButton } from "./connect";
 
@@ -23,13 +14,19 @@ const languages = [
 export const SettingPage = () => {
   const [selectedLanguage, setSelectedLanguage] = useState("");
   const [method, setMethod] = useState("");
+  const [apiBaseUrl, setApiBaseUrl] = useState("");
+  const [editingCustomUrl, setEditingCustomUrl] = useState(false);
+  const [tempCustomUrl, setTempCustomUrl] = useState("");
 
   useEffect(() => {
     chrome.runtime.sendMessage({ type: "get_settings" });
+    chrome.runtime.sendMessage({ type: "get_api_base_url" });
     chrome.runtime.onMessage.addListener((msg) => {
-      if (msg.type === "set_settings") {
+      if (msg.type === "set_settings" && msg.content) {
         setSelectedLanguage(msg.content.language);
         setMethod(msg.content.method);
+      } else if (msg.type === "set_api_base_url" && msg.content) {
+        setApiBaseUrl(msg.content);
       }
     });
   }, []);
@@ -39,6 +36,21 @@ export const SettingPage = () => {
       type: "set_settings",
       content: { language: selectedLanguage, method: method },
     });
+  };
+
+  const saveApiBaseUrl = (url?: string) => {
+    chrome.runtime.sendMessage({
+      type: "set_api_base_url",
+      content: url ?? apiBaseUrl,
+    });
+  };
+
+  const resetApiBaseUrl = () => {
+    chrome.runtime.sendMessage({
+      type: "set_api_base_url",
+      content: "",
+    });
+    setApiBaseUrl("");
   };
 
   const selectedLang = languages.find((lang) => lang.id === selectedLanguage);
@@ -98,7 +110,69 @@ export const SettingPage = () => {
 
         <div className="mb-6">
           <ConnectButton />
+        {/* Custom API Base URL Input */}
+        <div className="mt-6 bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+          <h2 className="text-xl font-semibold mb-3 text-gray-900">Custom API Base URL</h2>
+          {editingCustomUrl ? (
+            <>
+              <input
+                type="text"
+                value={tempCustomUrl}
+                onChange={(e) => setTempCustomUrl(e.target.value)}
+                placeholder="https://your-custom-api.com/"
+                className="w-full mb-3 bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setApiBaseUrl(tempCustomUrl);
+                    saveApiBaseUrl(tempCustomUrl);
+                    setEditingCustomUrl(false);
+                  }}
+                  className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => {
+                    setTempCustomUrl(apiBaseUrl);
+                    setEditingCustomUrl(false);
+                  }}
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    resetApiBaseUrl();
+                    setTempCustomUrl("");
+                    setEditingCustomUrl(false);
+                  }}
+                  className="ml-auto bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-lg"
+                >
+                  Reset to Default
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center gap-3">
+              <div className="flex-1 bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 font-mono text-gray-900 text-sm break-all">
+                {apiBaseUrl || <span className="text-gray-400 italic">Using default ApiBeam server</span>}
+              </div>
+              <button
+                onClick={() => {
+                  setTempCustomUrl(apiBaseUrl);
+                  setEditingCustomUrl(true);
+                }}
+                className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white font-medium px-4 py-3 rounded-lg transition-colors"
+              >
+                <Edit size={18} />
+                <span>Edit</span>
+              </button>
+            </div>
+          )}
         </div>
+      </div>
         {/* How It Works Section */}
         <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6 shadow-sm">
           <div className="flex items-start gap-3 mb-4">

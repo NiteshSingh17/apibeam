@@ -56,7 +56,7 @@ export const ChatGPT = () => {
               if (submitButton) submitButton?.click();
             }, 100);
           }
-        } else if (msg.type === "set_settings") {
+        } else if (msg.type === "set_settings" && msg.content) {
           setSelectedLanguage(msg.content.language);
           setMethod(msg.content.method);
         }
