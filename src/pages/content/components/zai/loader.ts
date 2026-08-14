@@ -49,8 +49,11 @@
 
               // z.ai format: { type: "chat:completion", data: { delta_content: "...", phase: "..." } }
               if (obj.type === 'chat:completion' && obj.data) {
-                // Collect deltas from any phase so we never miss the answer
-                if (typeof obj.data.delta_content === 'string') {
+                // Only collect answer deltas; skip the "thinking" reasoning phase
+                if (
+                  typeof obj.data.delta_content === 'string' &&
+                  obj.data.phase !== 'thinking'
+                ) {
                   fullAssistantMessage += obj.data.delta_content;
                 }
                 // If phase is "done", stream is complete
@@ -69,13 +72,50 @@
 
       function extractAndParseJson(str: string, fallback: any = null) {
         if (typeof str !== 'string') return fallback;
-        const jsonMatch = str.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) return fallback;
-        try {
-          return JSON.parse(jsonMatch[0]);
-        } catch {
-          return fallback;
+
+        const tryParse = (candidate: string) => {
+          try {
+            return JSON.parse(candidate);
+          } catch {
+            return undefined;
+          }
+        };
+
+        // 1. Fast path: the whole message is valid JSON
+        const direct = tryParse(str.trim());
+        if (direct !== undefined) return direct;
+
+        // 2. Strip markdown code fences (```json ... ```)
+        const fenced = str.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (fenced) {
+          const fencedParsed = tryParse(fenced[1].trim());
+          if (fencedParsed !== undefined) return fencedParsed;
         }
+
+        // 3. Greedy object match (first "{" to last "}")
+        const greedy = str.match(/\{[\s\S]*\}/);
+        if (greedy) {
+          const greedyParsed = tryParse(greedy[0]);
+          if (greedyParsed !== undefined) return greedyParsed;
+        }
+
+        // 4. Scan every "{...}" span and keep the largest valid JSON object
+        let best: any = undefined;
+        let bestLen = 0;
+        for (let i = 0; i < str.length; i++) {
+          if (str[i] !== '{') continue;
+          for (let j = str.length - 1; j > i; j--) {
+            if (str[j] !== '}') continue;
+            const candidate = str.slice(i, j + 1);
+            const parsed = tryParse(candidate);
+            if (parsed !== undefined && candidate.length > bestLen) {
+              best = parsed;
+              bestLen = candidate.length;
+            }
+          }
+        }
+
+        return best !== undefined ? best : fallback;
       }
 
       const parsed = extractAndParseJson(fullAssistantMessage);
