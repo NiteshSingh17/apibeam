@@ -415,6 +415,12 @@ For issues, questions, or suggestions:
 
 ---
 
+## Group
+Welcome more discussion in Discord.
+
+[https://discord.gg/cFc5csczzS
+](https://discord.gg/n4qkvWmZb)
+
 ## 🙏 Acknowledgments
 
 - Built with [Vite](https://vitejs.dev/)
