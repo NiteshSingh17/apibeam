@@ -62,29 +62,30 @@ export const CustomSettingsModal = ({ apiBaseUrl, onSave, onReset, onClose }: Pr
           <label className="block text-sm font-medium text-gray-700 mb-2">
             AI Provider
           </label>
-          <div className="flex gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {(
               [
                 { id: "chatgpt", label: "ChatGPT", icon: "🤖", sublabel: "chat.openai.com" },
                 { id: "claude", label: "Claude", icon: "🟣", sublabel: "claude.ai" },
                 { id: "zai", label: "z.ai", icon: "🔵", sublabel: "chat.z.ai" },
+                { id: "deepseek", label: "DeepSeek", icon: "🧠", sublabel: "chat.deepseek.com" },
               ] as { id: Provider; label: string; icon: string; sublabel: string }[]
             ).map(({ id, label, icon, sublabel }) => (
               <button
                 key={id}
                 onClick={() => handleProviderChange(id)}
-                className={`flex-1 flex items-center gap-3 px-4 py-3 rounded-lg border-2 transition-all text-left ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg border-2 transition-all text-left ${
                   provider === id
                     ? "border-blue-500 bg-blue-50"
                     : "border-gray-200 hover:border-gray-300 bg-white"
                 }`}
               >
                 <span className="text-xl">{icon}</span>
-                <div>
+                <div className="flex-1 min-w-0">
                   <p className={`text-sm font-medium ${provider === id ? "text-blue-700" : "text-gray-800"}`}>
                     {label}
                   </p>
-                  <p className="text-xs text-gray-400">{sublabel}</p>
+                  <p className="text-xs text-gray-400 truncate">{sublabel}</p>
                 </div>
                 {provider === id && (
                   <span className="ml-auto text-blue-500 text-xs font-semibold">Active</span>

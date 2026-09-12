@@ -45,6 +45,7 @@ export default defineConfig({
         loader: resolve(__dirname, "src/pages/content/loader.ts"),
         "loader-claude": resolve(__dirname, "src/pages/content/components/claude/loader.ts"),
         "loader-zai": resolve(__dirname, "src/pages/content/components/zai/loader.ts"),
+        "loader-deepseek": resolve(__dirname, "src/pages/content/components/deepseek/loader.ts"),
         settingsHtml: resolve(__dirname, "src/pages/settings/index.html"),
       },
       output: {

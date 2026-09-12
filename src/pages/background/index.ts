@@ -6,19 +6,22 @@ export const DEFAULT_API_BASE_URL = "https://apibeam.bitsmall.in/";
 const chatgptBaseUrl = "https://chatgpt.com";
 const claudeBaseUrl = "https://claude.ai/new";
 const zaiBaseUrl = "https://chat.z.ai";
+const deepseekBaseUrl = "https://chat.deepseek.com";
 
 // Helper function to build provider URL with query params for temporary chat
 const buildProviderUrl = (provider: Provider, useTemporaryChat: boolean): string => {
   if (provider === 'claude') {
     const url = claudeBaseUrl;
     return useTemporaryChat ? `${url}?incognito=` : url;
+  } else if (provider === 'deepseek') {
+    return deepseekBaseUrl;
   } else {
     const url = provider === 'zai' ? zaiBaseUrl : chatgptBaseUrl;
     return useTemporaryChat ? `${url}?temporary-chat=true` : url;
   }
 };
 
-export type Provider = 'chatgpt' | 'claude' | 'zai';
+export type Provider = 'chatgpt' | 'claude' | 'zai' | 'deepseek';
 
 export type SettingsSchema = {
   language: string;
@@ -261,7 +264,19 @@ chrome.runtime.onMessage.addListener(
     const tabId = _sender.tab?.id;
     if (msg.type === "question_answer") {
       const roomId = await getRoomId();
+      console.log(
+        "[BG] question_answer received. roomId:",
+        roomId,
+        "socket connected:",
+        socket?.connected,
+        "content:",
+        JSON.stringify(msg.content)?.substring(0, 300)
+      );
       socket?.emit("clientResponse", { roomId, message: msg.content });
+      console.log(
+        "[BG] clientResponse emitted:",
+        JSON.stringify({ roomId, message: msg.content })?.substring(0, 300)
+      );
     } else if (msg.type === "set_settings") {
       chrome.storage.local.set({ settings: msg.content }, function () {});
     } else if (msg.type === "get_settings") {
