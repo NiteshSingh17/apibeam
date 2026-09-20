@@ -111,6 +111,14 @@ let tabId: undefined | number;
 let socket: Socket | undefined;
 
 const broadcastConnectionStatus = () => {
+  const payload = {
+    type: "get_connection_status",
+    content: socketConnectionStatus,
+  };
+  try {
+    chrome.runtime.sendMessage(payload, () => chrome.runtime.lastError);
+  } catch {
+  }
   chrome.tabs.query({}, (tabs) => {
     tabs.forEach((tab) => {
       if (tab.id) {
