@@ -27,6 +27,17 @@
       "matches": ["https://chat.z.ai/*"],
       "js": ["src/pages/content/zai-index.tsx"],
       "css": ["contentStyle.css"]
+    },
+    {
+      "matches": ["https://chat.deepseek.com/*"],
+      "js": ["src/pages/content/deepseek-index.tsx"],
+      "css": ["contentStyle.css"]
+    },
+    {
+      "matches": ["https://chat.deepseek.com/*"],
+      "js": ["src/pages/content/components/deepseek/loader.ts"],
+      "run_at": "document_start",
+      "world": "MAIN"
     }
   ],
   "web_accessible_resources": [

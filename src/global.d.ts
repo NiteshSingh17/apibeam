@@ -9,3 +9,9 @@ declare module '*.json' {
   const content: string;
   export default content;
 }
+
+interface Window {
+  __apibeam_capturing?: boolean;
+  __apibeam_capturing_timer?: number;
+  __apibeam_loader_installed?: boolean;
+}

@@ -3,15 +3,13 @@ import { createPrompt } from './createPrompt';
 
 /**
  * Shared hook for handling background messages (ask_question + set_settings).
- * The `onAskQuestion` callback receives the raw message content and a one-time
- * prompt string (only non-empty on the very first call, then empty thereafter).
+ * The prompt is sent on every message so the AI always knows the expected format.
  */
 export const useMessageHandler = (
   onAskQuestion: (content: { route: string; body: object }, prompt: string, useTemporaryChat?: boolean) => void
 ) => {
   const [selectedLanguage, setSelectedLanguage] = useState('');
   const [method, setMethod] = useState('');
-  const isInitialized = useRef(false);
   const promptRef = useRef(createPrompt('', ''));
 
   useEffect(() => {
@@ -22,11 +20,8 @@ export const useMessageHandler = (
     chrome.runtime.sendMessage({ type: 'get_settings' });
 
     const listener = (msg: any) => {
-      console.log("dd33 ", msg)
       if (msg.type === 'ask_question') {
-        const prompt = isInitialized.current ? '' : promptRef.current;
-        isInitialized.current = true;
-        onAskQuestion(msg.content, prompt, msg.useTemporaryChat);
+        onAskQuestion(msg.content, promptRef.current, msg.useTemporaryChat);
       } else if (msg.type === 'set_settings' && msg.content) {
         setSelectedLanguage(msg.content.language);
         setMethod(msg.content.method);
