@@ -22,8 +22,7 @@ export const useMessageHandler = (
     chrome.runtime.sendMessage({ type: 'get_settings' });
 
     const listener = (msg: any) => {
-      console.log("dd33 ", msg)
-      if (msg.type === 'ask_question') {
+            if (msg.type === 'ask_question') {
         const prompt = isInitialized.current ? '' : promptRef.current;
         isInitialized.current = true;
         onAskQuestion(msg.content, prompt, msg.useTemporaryChat);
