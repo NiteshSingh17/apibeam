@@ -2,8 +2,6 @@ import { createRoot } from 'react-dom/client';
 import { Zai } from './components/zai';
 import './style.css';
 
-console.log('[ApiBeam] z.ai content script loaded');
-
 const div = document.createElement('div');
 div.id = '__root_zai';
 document.body.appendChild(div);
