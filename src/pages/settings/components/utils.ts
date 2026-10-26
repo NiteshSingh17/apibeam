@@ -8,13 +8,10 @@ function getConnectionSpeed() {
     const speedMbps = connection.downlinkMax || connection.bandwidth;
 
     if (speedMbps !== undefined) {
-      console.log(`Estimated connection speed: ${speedMbps} Mbps`);
-      // You can then send this information to your popup or content script
+            // You can then send this information to your popup or content script
       // using chrome.runtime.sendMessage or long-lived ports.
     } else {
-      console.log("Connection speed information not available.");
-    }
+          }
   } else {
-    console.log("Network Information API not supported in this browser.");
-  }
+      }
 }
