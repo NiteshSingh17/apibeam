@@ -250,7 +250,7 @@
       try {
         return JSON.parse(json);
       } catch (e) {
-        console.warn("Failed to parse JSON:", e);
+        console.error('Failed to parse JSON:', e);
         return fallback;
       }
     }
@@ -330,7 +330,7 @@
           try {
             obj = JSON.parse(dataStr);
           } catch (err) {
-            console.warn("Could not parse SSE data JSON:", dataStr, err);
+            console.error('Could not parse SSE data JSON:', dataStr, err);
             fullAssistantMessage += dataStr;
             continue;
           }
@@ -397,7 +397,7 @@
 
       window.postMessage({ data: parsed }, "*");
     }
-    readStream().catch((err) => console.error("SSE read error:", err));
+    readStream().catch((err) => console.error('SSE read error:', err));
     return response;
   };
 })();

@@ -157,14 +157,12 @@ async function connectWS() {
 
     socket.on("disconnect", () => {
       disconnectWS();
-      console.log("[BG] Disconnected");
     });
 
     socket.on("connect_error", (err) => handleErrorOnConnect(err));
     socket.on("connect_failed", (err) => handleErrorOnConnect(err));
 
     socket.on("serverMessage", async (msg) => {
-      console.log("serverMessage", msg);
       const provider = await getProvider();
       const useTemporaryChat = await getUseTemporaryChat();
       const providerUrl = buildProviderUrl(provider, useTemporaryChat);
@@ -173,9 +171,7 @@ async function connectWS() {
       const sendMessageToTabWithRetry = async (id: number, retries = 3, delay = 2000) => {
         try {
           const tab = await chrome.tabs.get(id);
-          console.log("[BG] Tab found:", tab.url);
           if (tab) {
-            console.log("[BG] Sending ask_question message to tab", id, "with content:", msg);
             chrome.tabs.sendMessage(id, {
               type: "ask_question",
               content: msg,
@@ -183,28 +179,23 @@ async function connectWS() {
             }, (response) => {
               if (chrome.runtime.lastError) {
                 if(tabCreated) return;
-                console.log("[BG] Error sending message:", chrome.runtime.lastError);
                 // Retry if content script not ready
                 if (retries > 0 && chrome.runtime.lastError.message?.includes('Receiving end does not exist')) {
-                  console.log(`[BG] Retrying in ${delay}ms... (${retries} retries left)`);
                   setTimeout(() => {
                     sendMessageToTabWithRetry(id, retries - 1, delay);
                   }, delay);
                 }
               } else {
-                console.log("[BG] Message sent successfully");
               }
             });
           }
         } catch (err) {
           if(tabCreated) return;
-          console.log("[BG] Tab not found, creating new one. Error:", err);
           chrome.tabs.create(
             { url: providerUrl, active: true },
             (newTab) => {
               if (newTab.id) {
                 tabId = newTab.id;
-                console.log("[BG] New tab created with id:", newTab.id, "URL:", providerUrl);
                   if(newTab.id)
                   sendMessageToTabWithRetry(newTab.id, 3, 2000);
               }
@@ -217,16 +208,13 @@ async function connectWS() {
       if (tabId) {
         sendMessageToTabWithRetry(tabId);
       } else {
-        console.log("in start else")
         tabCreated = true;
         // No tab exists, create one
-        console.log("[BG] Creating new tab with URL:", providerUrl);
         chrome.tabs.create(
           { url: providerUrl, active: true },
           (tab) => {
             if (tab.id) {
               tabId = tab.id;
-              console.log("[BG] New tab created with id:", tab.id, "URL:", providerUrl);
               // Wait longer for new tab content script to load
               setTimeout(() => {
                 if(tab.id)
@@ -238,13 +226,11 @@ async function connectWS() {
       }
     });
   } catch (e: any) {
-    console.log("Catch error ", e);
     handleErrorOnConnect(e);
   }
 }
 
 const disconnectWS = () => {
-  console.log("disconnectWS")
   socket?.disconnect();
   socket = undefined;
   socketConnectionStatus.status = "disconnected";
@@ -253,7 +239,6 @@ const disconnectWS = () => {
 };
 
 const handleErrorOnConnect = (err: any) => {
-  console.log("handleErrorOnConnect ", err);
   socketConnectionStatus.status = "disconnected";
   socketConnectionStatus.errorMessage = err.message;
   broadcastConnectionStatus();
@@ -295,7 +280,6 @@ chrome.runtime.onMessage.addListener(
       // Store new API base URL
       const newUrl = msg.content as string;
       chrome.storage.local.set({ apiBaseUrl: newUrl }, async () => {
-        console.log("API base URL updated to", newUrl);
         // Broadcast updated connect URL back to the settings tab so the UI updates instantly
         if (tabId) {
           disconnectWS();
@@ -309,7 +293,6 @@ chrome.runtime.onMessage.addListener(
     } else if (msg.type === "set_provider") {
       const provider = msg.content as Provider;
       chrome.storage.local.set({ provider }, () => {
-        console.log("Provider set to", provider);
         if (tabId) {
           chrome.tabs.sendMessage(tabId, {
             type: "set_provider",

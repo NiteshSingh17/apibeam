@@ -26,8 +26,7 @@ export const ConnectButton = ({ popup }: { popup?: boolean }) => {
     chrome.runtime.sendMessage(
       { type: "get_connection_status" },
       (response) => {
-        console.log("[Settings] Response received:", response);
-        if (response && response.type === "get_connection_status") {
+                if (response && response.type === "get_connection_status") {
           setStatus(response.content.status);
           setErrorMessage(response.content.errorMessage);
         }

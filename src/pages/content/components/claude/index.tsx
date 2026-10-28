@@ -5,12 +5,9 @@ import { waitForElement } from '../../shared/utils';
 export const Claude = () => {
   const sendToChat = useCallback(
     async (content: { route: string; body: object }, prompt: string, useTemporaryChat?: boolean) => {
-      console.log("Send to chatg", content, prompt);
-      // Claude uses a ProseMirror contenteditable div
+            // Claude uses a ProseMirror contenteditable div
       const editor = await waitForElement('div[contenteditable="true"].ProseMirror') as HTMLElement
         ?? await waitForElement('div[contenteditable="true"]') as HTMLElement;
-      console.log("Send editor", editor);
-
       if (!editor) {
         console.error('[ApiBeam Claude] Could not find Claude input editor');
         return;
@@ -29,8 +26,6 @@ export const Claude = () => {
           (document.querySelector('button[data-testid="send-button"]') as HTMLButtonElement);
         if (sendBtn && !sendBtn.disabled) {
           sendBtn.click();
-        } else {
-          console.warn('[ApiBeam Claude] Send button not found or disabled');
         }
       }, 200);
     },

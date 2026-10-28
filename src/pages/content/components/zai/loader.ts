@@ -58,8 +58,7 @@
                 }
                 // If phase is "done", stream is complete
                 if (obj.data.phase === 'done' || obj.data.done === true) {
-                  console.log('[ApiBeam z.ai] Stream complete');
-                }
+                                  }
               }
             } catch {
               // skip non-JSON lines
@@ -68,9 +67,7 @@
         }
       }
 
-      console.log('[ApiBeam z.ai] Captured response:', fullAssistantMessage.substring(0, 200));
-
-      function extractAndParseJson(str: string, fallback: any = null) {
+            function extractAndParseJson(str: string, fallback: any = null) {
         if (typeof str !== 'string') return fallback;
 
         const tryParse = (candidate: string) => {

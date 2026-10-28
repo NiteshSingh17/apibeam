@@ -2,8 +2,6 @@ import { createRoot } from 'react-dom/client';
 import { Claude } from './components/claude';
 import './style.css';
 
-console.log('[ApiBeam] Claude content script loaded');
-
 const div = document.createElement('div');
 div.id = '__root_claude';
 document.body.appendChild(div);
