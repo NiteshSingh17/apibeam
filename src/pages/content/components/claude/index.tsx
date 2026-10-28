@@ -8,7 +8,7 @@ export const Claude = () => {
             // Claude uses a ProseMirror contenteditable div
       const editor = await waitForElement('div[contenteditable="true"].ProseMirror') as HTMLElement
         ?? await waitForElement('div[contenteditable="true"]') as HTMLElement;
-            if (!editor) {
+      if (!editor) {
         console.error('[ApiBeam Claude] Could not find Claude input editor');
         return;
       }
@@ -26,8 +26,6 @@ export const Claude = () => {
           (document.querySelector('button[data-testid="send-button"]') as HTMLButtonElement);
         if (sendBtn && !sendBtn.disabled) {
           sendBtn.click();
-        } else {
-          console.warn('[ApiBeam Claude] Send button not found or disabled');
         }
       }, 200);
     },

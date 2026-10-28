@@ -35,8 +35,6 @@ export const Zai = () => {
           (document.querySelector('button[type="submit"]') as HTMLButtonElement);
         if (sendBtn && !sendBtn.disabled) {
           sendBtn.click();
-        } else {
-          console.warn('[ApiBeam z.ai] Send button not found or disabled');
         }
       }, 200);
     },
